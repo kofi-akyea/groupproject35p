@@ -64,3 +64,39 @@ def predict(features: ProjectFeatures, model_name: str = DEFAULT_MODEL) -> Predi
         narrative=narr,
         request_id=str(uuid.uuid4()),
     )
+
+
+def predict_batch(df: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list:
+    """Run batch predictions without SHAP for faster processing."""
+    pipe = joblib.load(MODELS_DIR / f"{model_name}.joblib")
+    pre = pipe.named_steps["pre"]
+    clf = pipe.named_steps["clf"]
+    
+    # Ensure categorical columns are strings
+    categorical_cols = [
+        "Project_Type", "Methodology_Used", "Project_Phase",
+        "Team_Experience_Level", "Project_Manager_Experience",
+        "Requirement_Stability", "Risk_Management_Maturity", 
+        "Change_Control_Maturity", "Tech_Environment_Stability"
+    ]
+    for col in categorical_cols:
+        if col in df.columns:
+            df[col] = df[col].astype(str)
+    
+    # Transform and predict in batch
+    Xt = pre.transform(df)
+    probs = clf.predict_proba(Xt)
+    preds = clf.predict(Xt)
+    
+    # Convert to class names
+    from code.utils.risk_levels import RISK_LEVELS
+    results = []
+    for i in range(len(df)):
+        pred_class = RISK_LEVELS[preds[i]]
+        prob_dict = {RISK_LEVELS[k]: float(probs[i][k]) for k in range(len(RISK_LEVELS))}
+        results.append({
+            "prediction": pred_class,
+            "probabilities": prob_dict
+        })
+    
+    return results

@@ -62,7 +62,12 @@ def shap_for_pipeline(pipeline, X_row: pd.DataFrame) -> dict:
         per_class = {CLASS_NAMES[k]: float(probs[k]) for k in range(len(CLASS_NAMES))}
         per_class_shap = {}
         for k in range(len(CLASS_NAMES)):
-            per_class_shap[CLASS_NAMES[k]] = _aggregate_origin(sv[k][0] if isinstance(sv, list) else sv[0], origins)
+            # Handle empty SHAP values
+            if isinstance(sv, list):
+                shap_row = sv[k][0] if len(sv) > k and len(sv[k]) > 0 else np.zeros(len(origins))
+            else:
+                shap_row = sv[0] if len(sv) > 0 else np.zeros(len(origins))
+            per_class_shap[CLASS_NAMES[k]] = _aggregate_origin(shap_row, origins)
         head_idx = int(np.argmax(probs))
         head = CLASS_NAMES[head_idx]
         return {
@@ -80,7 +85,12 @@ def shap_for_pipeline(pipeline, X_row: pd.DataFrame) -> dict:
         per_class = {CLASS_NAMES[k]: float(probs[k]) for k in range(len(CLASS_NAMES))}
         per_class_shap = {}
         for k in range(len(CLASS_NAMES)):
-            per_class_shap[CLASS_NAMES[k]] = _aggregate_origin(np.array(sv)[k] if isinstance(sv, list) else sv, origins)
+            # Handle empty SHAP values
+            if isinstance(sv, list):
+                shap_row = sv[k] if len(sv) > k else np.zeros(len(origins))
+            else:
+                shap_row = sv if sv is not None and len(sv) > 0 else np.zeros(len(origins))
+            per_class_shap[CLASS_NAMES[k]] = _aggregate_origin(shap_row, origins)
         head_idx = int(np.argmax(probs))
         head = CLASS_NAMES[head_idx]
         return {

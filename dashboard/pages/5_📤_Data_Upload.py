@@ -9,7 +9,7 @@ from code.utils.config import FEATURE_NAMES
 from code.utils.risk_levels import RISK_LEVELS, RISK_COLOURS
 from code.data_prep.clean_data import clean
 from code.data_prep.encode_features import encode_target
-from code.api.inference import predict
+from code.api.inference import predict, predict_batch
 from code.api.schemas import ProjectFeatures
 
 st.set_page_config(page_title="Data Upload", page_icon="📤", layout="wide")
@@ -81,45 +81,21 @@ if uploaded_file:
         
         if run_prediction:
             with st.spinner("Running predictions..."):
-                results = []
-                for idx, row in df_clean.iterrows():
-                    try:
-                        # Use cleaned data values directly (already converted to proper types by clean())
-                        payload = {
-                            "Project_Type": str(row["Project_Type"]),
-                            "Complexity_Score": float(row["Complexity_Score"]),
-                            "Methodology_Used": str(row["Methodology_Used"]),
-                            "Project_Phase": str(row["Project_Phase"]),
-                            "Team_Experience_Level": str(row["Team_Experience_Level"]),
-                            "Project_Manager_Experience": str(row["Project_Manager_Experience"]),
-                            "Resource_Availability": float(row["Resource_Availability"]),
-                            "Team_Turnover_Rate": float(row["Team_Turnover_Rate"]),
-                            "Requirement_Stability": str(row["Requirement_Stability"]),
-                            "Risk_Management_Maturity": str(row["Risk_Management_Maturity"]),
-                            "Change_Control_Maturity": str(row["Change_Control_Maturity"]),
-                            "Communication_Frequency": float(row["Communication_Frequency"]),
-                            "Stakeholder_Engagement_Level": float(row["Stakeholder_Engagement_Level"]),
-                            "Schedule_Pressure": float(row["Schedule_Pressure"]),
-                            "Budget_Utilization_Rate": float(row["Budget_Utilization_Rate"]),
-                            "Historical_Risk_Incidents": int(row["Historical_Risk_Incidents"]),
-                            "Vendor_Reliability_Score": float(row["Vendor_Reliability_Score"]),
-                            "Tech_Environment_Stability": str(row["Tech_Environment_Stability"]),
-                        }
-                        result = predict(ProjectFeatures(**payload), model_name=model_choice)
+                try:
+                    # Use fast batch prediction without SHAP
+                    batch_results = predict_batch(df_clean, model_name=model_choice)
+                    results = []
+                    for idx, result in enumerate(batch_results):
                         results.append({
                             "Row": idx,
-                            "Prediction": result.prediction,
-                            **result.probabilities
+                            "Prediction": result["prediction"],
+                            **result["probabilities"]
                         })
-                    except Exception as e:
-                        results.append({
-                            "Row": idx,
-                            "Prediction": f"Error: {str(e)}",
-                            "Low": 0, "Medium": 0, "High": 0, "Critical": 0
-                        })
-                
-                results_df = pd.DataFrame(results)
-                st.success(f"Predictions completed for {len(results_df)} records!")
+                    results_df = pd.DataFrame(results)
+                    st.success(f"Predictions completed for {len(results_df)} records!")
+                except Exception as e:
+                    st.error(f"Batch prediction failed: {e}")
+                    st.stop()
                 
                 # Show results
                 st.subheader("Prediction Results")
