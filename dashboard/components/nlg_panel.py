@@ -6,7 +6,7 @@ def render(narrative: str, top_features: list, risk_colour: str):
     """Render the NLG explanation panel."""
     st.markdown("#### 📝 Plain-Language Explanation")
     bullets = "\n".join(
-        f"- **{f['feature']}** (SHAP importance: {f['shap']:+.2f})" for f in top_features
+        f"- <b>{f['feature']}</b> (SHAP importance: {f['shap']:+.2f})" for f in top_features
     )
     st.markdown(
         f"""<div style="border-left:6px solid {risk_colour};
