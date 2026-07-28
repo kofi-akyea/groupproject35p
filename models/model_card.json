@@ -1,0 +1,41 @@
+{
+  "dataset": "Project Management Risk Raw (Kaggle)",
+  "dataset_size": 4000,
+  "features": [
+    "Project_Type",
+    "Complexity_Score",
+    "Methodology_Used",
+    "Project_Phase",
+    "Team_Experience_Level",
+    "Project_Manager_Experience",
+    "Resource_Availability",
+    "Team_Turnover_Rate",
+    "Requirement_Stability",
+    "Risk_Management_Maturity",
+    "Change_Control_Maturity",
+    "Communication_Frequency",
+    "Schedule_Pressure",
+    "Budget_Utilization_Rate",
+    "Historical_Risk_Incidents",
+    "Vendor_Reliability_Score",
+    "Tech_Environment_Stability",
+    "Stakeholder_Engagement_Level"
+  ],
+  "target": "Risk_Level (Low=0, Medium=1, High=2, Critical=3)",
+  "models": {
+    "logistic_regression": {
+      "accuracy": 0.5016666666666667,
+      "qwk": 0.6657120097109476,
+      "within_one": 0.905,
+      "macro_f1": 0.5075651499653279
+    },
+    "random_forest": {
+      "accuracy": 0.5066666666666667,
+      "qwk": 0.6219009691305449,
+      "within_one": 0.9266666666666666,
+      "macro_f1": 0.5078299087884126
+    }
+  },
+  "selected_model": "random_forest (higher accuracy and QWK)",
+  "version": "1.0.0"
+}
