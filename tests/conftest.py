@@ -1,4 +1,7 @@
-"""Pytest configuration - ensures src is on the path."""
+"""Pytest configuration - ensures project root is on the path."""
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+# Add project root to path
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))

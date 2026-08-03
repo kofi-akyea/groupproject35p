@@ -2,13 +2,13 @@
 import pytest
 import numpy as np
 from sklearn.metrics import accuracy_score
-from src.data_prep.load_data import load_raw
-from src.data_prep.clean_data import clean, NUMERIC_COLS, CATEGORICAL_COLS
-from src.data_prep.encode_features import encode_target
-from src.data_prep.split_data import split
-from src.models.train_logreg import build_logreg_pipeline
-from src.models.train_rf import build_rf_pipeline
-from src.models.ordinal_metrics import quadratic_weighted_kappa, within_one_class_accuracy
+from code.data_prep.load_data import load_raw
+from code.data_prep.clean_data import clean, NUMERIC_COLS, CATEGORICAL_COLS
+from code.data_prep.encode_features import encode_target
+from code.data_prep.split_data import split
+from code.models.train_logreg import build_logreg_pipeline
+from code.models.train_rf import build_rf_pipeline
+from code.models.ordinal_metrics import quadratic_weighted_kappa, within_one_class_accuracy
 
 
 def test_logreg_above_chance():

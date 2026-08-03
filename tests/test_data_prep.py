@@ -1,11 +1,11 @@
 """Tests for data preparation modules."""
 import pandas as pd
 import pytest
-from src.data_prep.load_data import load_raw
-from src.data_prep.validate_data import validate_data
-from src.data_prep.clean_data import clean, NUMERIC_COLS, CATEGORICAL_COLS
-from src.data_prep.encode_features import encode_target, build_preprocessor, TARGET_ORDER
-from src.data_prep.split_data import split
+from code.data_prep.load_data import load_raw
+from code.data_prep.validate_data import validate_data
+from code.data_prep.clean_data import clean, NUMERIC_COLS, CATEGORICAL_COLS
+from code.data_prep.encode_features import encode_target, build_preprocessor, TARGET_ORDER
+from code.data_prep.split_data import split
 
 
 def test_load_raw_ok():

@@ -22,7 +22,7 @@ This DSS helps project managers and stakeholders assess project risk by analyzin
 
 ### Prerequisites
 
-- Python 3.8+
+- Python 3.9+
 - pip package manager
 
 ### Installation
@@ -89,7 +89,7 @@ DSS SYSTEM GROUP/
 │   └── utils/                        # Utilities & config
 │
 ├── 📁 tests/                         # Test modules
-└── 📁 deployment/                    # Docker deployment files
+
 ```
 
 ## 🔑 Key Features
@@ -188,7 +188,57 @@ curl -X POST http://localhost:5000/predict \
 Run tests with pytest:
 
 ```bash
-pytest tests/
+# Run all tests (with debugging plugin disabled to avoid stdlib 'code' module conflict)
+python -m pytest tests/ -v -p no:debugging
+
+# Run specific test file
+python -m pytest tests/test_data_prep.py -v -p no:debugging
+python -m pytest tests/test_models.py -v -p no:debugging
+
+# Run with coverage
+python -m pytest tests/ -v -p no:debugging --cov=code --cov-report=html
+```
+
+### Test Coverage
+
+The test suite includes:
+
+**Data Preparation Tests (7 tests):**
+- Data loading and validation
+- Data cleaning and type conversion
+- Ordinal target encoding
+- Stratified dataset splitting
+- Preprocessor fitting and transformation
+
+**Model Tests (6 tests):**
+- Logistic Regression performance validation
+- Random Forest performance validation
+- Quadratic Weighted Kappa metric validation
+- Within-one accuracy metric validation
+- Ordinal metric edge cases
+
+### Expected Output
+
+```
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-9.0.2
+collected 13 items
+
+tests/test_data_prep.py::test_load_raw_ok PASSED
+tests/test_data_prep.py::test_validate_catches_missing_required_field PASSED
+tests/test_data_prep.py::test_clean_returns_four_levels PASSED
+tests/test_data_prep.py::test_clean_critical_count_at_least_one PASSED
+tests/test_data_prep.py::test_encode_target_ordinal PASSED
+tests/test_data_prep.py::test_split_preserves_class_proportions PASSED
+tests/test_data_prep.py::test_build_preprocessor_fits PASSED
+tests/test_models.py::test_logreg_above_chance PASSED
+tests/test_models.py::test_rf_above_chance PASSED
+tests/test_models.py::test_qwk_perfect_agreement PASSED
+tests/test_models.py::test_within_one_perfect PASSED
+tests/test_models.py::test_within_one_off_by_one PASSED
+tests/test_models.py::test_within_one_off_by_two PASSED
+
+======================== 13 passed, 1 warning in 4.60s ========================
 ```
 
 ## 🐳 Docker Deployment
@@ -198,7 +248,84 @@ pytest tests/
 docker-compose up --build
 ```
 
-## 📚 Module Documentation
+## � IT/DevOps Commands
+
+### Environment Setup
+```bash
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment (Windows)
+venv\Scripts\activate
+
+# Activate virtual environment (Linux/Mac)
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Model Management
+```bash
+# Train models from scratch
+python pipeline.py
+
+# Check model metadata
+python -c "import json; print(json.dumps(json.load(open('models/model_card.json')), indent=2))"
+
+# Verify model files exist
+python -c "import os; print('Models exist:', all(os.path.exists(f) for f in ['models/random_forest.joblib', 'models/logistic_regression.joblib']))"
+```
+
+### API Operations
+```bash
+# Start Flask API server
+python -m code.api.app
+
+# Check API health
+curl http://localhost:5000/health
+
+# Test prediction endpoint
+curl -X POST http://localhost:5000/predict -H "Content-Type: application/json" -d @test_payload.json
+```
+
+### Dashboard Operations
+```bash
+# Start Streamlit dashboard
+streamlit run dashboard/app.py
+
+# Start dashboard on custom port
+streamlit run dashboard/app.py --server.port 8503
+
+# Clear Streamlit cache
+streamlit cache clear
+```
+
+### Data Operations
+```bash
+# Verify dataset exists
+python -c "import pandas as pd; print('Dataset shape:', pd.read_csv('project_risk_raw_dataset.csv').shape)"
+
+# Check processed data
+python -c "import pandas as pd; print('X_train shape:', pd.read_parquet('data/processed/X_train.parquet').shape)"
+```
+
+### Monitoring
+```bash
+# Check system resources (Windows)
+wmic cpu get loadpercentage /value
+
+# Check disk space
+wmic logicaldisk get size,freespace,caption
+
+# Check Python version
+python --version
+
+# Check installed packages
+pip list
+```
+
+## �📚 Module Documentation
 
 ### Data Preprocessing (`code/data_prep/`)
 - `load_data.py`: Load raw CSV and processed parquet files
