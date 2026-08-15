@@ -151,10 +151,10 @@ For ordinal classification problems (Low, Medium, High, Critical), **no single m
 - **Use for**: Production deployment when ordinal accuracy and risk detection matter most
 
 **Alternative: Random Forest**
-- Highest Exact-Match Accuracy (0.5217 → 52.17%) - best strict accuracy
-- Strong Within-One Accuracy (0.9483 → 94.83%) - good ordinal performance
-- Good Macro F2 (0.5081 → 50.81%) - prioritizes capturing high-risk cases
-- **Use for**: When exact matches are critical and robust ensemble performance is desired
+- Solid Exact-Match Accuracy (0.4850 → 48.50%) - competitive strict accuracy
+- Good Within-One Accuracy (0.9117 → 91.17%) - reasonable ordinal performance
+- Macro F2 (0.4929 → 49.29%) - reasonable balance for risk detection
+- **Use for**: When a robust ensemble with strong generalization is desired
 
 **Highest Macro F2: Logistic Regression**
 - Highest Macro F2 (0.5241 → 52.41%) - best at prioritizing recall for risk detection
@@ -176,7 +176,7 @@ Logistic Regression:
   Exact-Match Accuracy: 0.4950, QWK: 0.6604, Within-One: 0.9067, Macro F2: 0.5241
 
 Random Forest:
-  Exact-Match Accuracy: 0.5217, QWK: 0.6481, Within-One: 0.9483, Macro F2: 0.5081
+  Exact-Match Accuracy: 0.4850, QWK: 0.6150, Within-One: 0.9117, Macro F2: 0.4929
 
 Ordinal Logistic Regression:
   Exact-Match Accuracy: 0.5067, QWK: 0.6829, Within-One: 0.9617, Macro F2: 0.5082
@@ -245,11 +245,11 @@ There are two different percentage concepts in model evaluation:
 **1. Overall Model Performance Metrics (Aggregate across test set):**
 These metrics represent the model's overall accuracy across all 600 test samples. They are NOT the probability of a single prediction.
 
-- **Accuracy (e.g., 52.17%):** Percentage of correct predictions out of 600 total predictions
+- **Accuracy (e.g., 48.50%):** Percentage of correct predictions out of 600 total predictions
   - Formula: `Accuracy = (Correct Predictions / Total Predictions) × 100`
-  - Example: 313 correct out of 600 = 52.17%
+  - Example: 291 correct out of 600 = 48.50%
 
-- **Macro F1 (e.g., 50.8%):** Average of F1 scores across all 4 classes
+- **Macro F1 (e.g., 49.2%):** Average of F1 scores across all 4 classes
   - Formula: `Macro F1 = (F1_Low + F1_Medium + F1_High + F1_Critical) / 4 × 100`
 
 - **QWK (e.g., 68.3%):** Quadratic Weighted Kappa - ordinal agreement metric
@@ -536,4 +536,3 @@ This project is for educational and research purposes.
 ## 📞 Support
 
 For detailed folder structure, see `PROJECT_STRUCTURE.md`.
-# groupproject35p
