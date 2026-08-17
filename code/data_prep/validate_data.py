@@ -1,7 +1,7 @@
-"""Data validation using pandera schema."""
+"""Data validation schema utilities."""
 import pandas as pd
 
-# Feature names and their valid categories for validation
+# Valid category lists for feature schema validation
 VALID_PROJECT_TYPES = ["Construction", "Manufacturing", "IT", "R&D", "Healthcare", "Marketing"]
 VALID_METHODOLOGIES = ["Waterfall", "Kanban", "Agile", "Scrum", "Hybrid"]
 VALID_PHASES = ["Planning", "Execution", "Initiation", "Closure", "Monitoring"]
@@ -13,6 +13,7 @@ VALID_CHANGE_CTRL = ["None", "Basic", "Formal", "Advanced"]
 VALID_TECH_ENV = ["Legacy/Unstable", "Mixed", "Modern/Stable"]
 VALID_RISK_LEVELS = ["Low", "Medium", "High", "Critical"]
 
+# Expected numeric range boundaries
 NUMERIC_RANGES = {
     "Complexity_Score": (0.0, 10.0),
     "Stakeholder_Engagement_Level": (0.0, 1.0),
@@ -31,7 +32,7 @@ def validate_data(df: pd.DataFrame) -> list:
     Returns empty list if valid."""
     errors = []
 
-    # Check required columns
+    # Check required columns presence in input DataFrame
     required = ["Risk_Level", "Project_Type", "Complexity_Score", "Methodology_Used",
                 "Project_Phase", "Team_Experience_Level", "Project_Manager_Experience",
                 "Resource_Availability", "Team_Turnover_Rate", "Requirement_Stability",
@@ -46,12 +47,12 @@ def validate_data(df: pd.DataFrame) -> list:
     if errors:
         return errors
 
-    # Validate Risk_Level
+    # Validate target Risk_Level values
     invalid_risk = df[~df["Risk_Level"].isin(VALID_RISK_LEVELS)]["Risk_Level"].unique()
     if len(invalid_risk) > 0:
         errors.append(f"Invalid Risk_Level values found: {invalid_risk.tolist()}")
 
-    # Validate categorical columns
+    # Validate categorical column values against schema definitions
     cat_validations = [
         ("Project_Type", VALID_PROJECT_TYPES),
         ("Methodology_Used", VALID_METHODOLOGIES),
@@ -69,10 +70,9 @@ def validate_data(df: pd.DataFrame) -> list:
             if len(invalid) > 0:
                 errors.append(f"Invalid values in {col}: {invalid.tolist()}")
 
-    # Validate numeric ranges (convert to numeric first for columns that may be strings)
+    # Validate numeric feature range boundaries
     for col, (lo, hi) in NUMERIC_RANGES.items():
         if col in df.columns:
-            # Convert to numeric for validation (handles string columns like Stakeholder_Engagement_Level)
             col_numeric = pd.to_numeric(df[col], errors="coerce")
             below = (col_numeric < lo).sum()
             above = (col_numeric > hi).sum()

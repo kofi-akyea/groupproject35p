@@ -1,9 +1,10 @@
 """Inference wrapper - loads model and generates predictions with explanations."""
 import joblib
+import numpy as np
 import pandas as pd
 import uuid
 
-from code.explainability.shap_engine import shap_for_pipeline
+from code.explainability.shap_engine import shap_for_pipeline, CLASS_NAMES
 from code.explainability.narrative_builder import build_narrative, top_features_from_shap
 from code.api.schemas import ProjectFeatures, PredictResponse
 from code.utils.config import MODELS_DIR
@@ -13,6 +14,7 @@ DEFAULT_MODEL = "random_forest"
 
 def _to_dataframe(features: ProjectFeatures) -> pd.DataFrame:
     """Convert ProjectFeatures dataclass to a single-row DataFrame."""
+    # Construct DataFrame from ProjectFeatures schema attributes
     df = pd.DataFrame([{
         "Project_Type": features.Project_Type,
         "Complexity_Score": features.Complexity_Score,
@@ -34,7 +36,7 @@ def _to_dataframe(features: ProjectFeatures) -> pd.DataFrame:
         "Tech_Environment_Stability": features.Tech_Environment_Stability,
     }])
     
-    # Ensure categorical columns are strings (not category dtype) to match training data
+    # Cast categorical feature columns to string dtype to align with preprocessor expectation
     categorical_cols = [
         "Project_Type", "Methodology_Used", "Project_Phase",
         "Team_Experience_Level", "Project_Manager_Experience",
@@ -49,25 +51,80 @@ def _to_dataframe(features: ProjectFeatures) -> pd.DataFrame:
 
 
 def predict(features: ProjectFeatures, model_name: str = DEFAULT_MODEL) -> PredictResponse:
-    """Run prediction and explanation for a single project."""
+    """Run prediction and explanation for a single project.
+    
+    Note: SHAP explanations are only generated for Random Forest and XGBoost models.
+    For other models, only predictions and probabilities are returned.
+    """
+    # Load serialized model pipeline from disk
     pipe = joblib.load(MODELS_DIR / f"{model_name}.joblib")
     X = _to_dataframe(features)
-    out = shap_for_pipeline(pipe, X)
-    head = out["head"]
-    top = top_features_from_shap(out["head_shap"], k=5)
-    narr = build_narrative(head, top, out["probabilities"])
+    
+    # Extract preprocessing pipeline and classifier steps
+    pre = pipe.named_steps["pre"]
+    clf = pipe.named_steps["clf"]
+    
+    # Transform raw feature row and compute class probabilities
+    Xt = pre.transform(X)
+    probs = clf.predict_proba(Xt)[0]
+    probabilities_pct = {CLASS_NAMES[k]: round(float(probs[k]) * 100, 2) for k in range(len(CLASS_NAMES))}
+    head_idx = int(np.argmax(probs))
+    head = CLASS_NAMES[head_idx]
+    
+    # Identify tree-based models capable of TreeExplainer acceleration
+    from sklearn.ensemble import RandomForestClassifier
+    try:
+        import xgboost
+        XGBClassifier = xgboost.XGBClassifier
+    except ImportError:
+        XGBClassifier = None
+    
+    is_tree_model = isinstance(clf, RandomForestClassifier)
+    if XGBClassifier is not None:
+        is_tree_model = is_tree_model or isinstance(clf, XGBClassifier)
+    
+    shap_values = None
+    top_features = []
+    narrative = ""
+    
+    # Compute SHAP explanation values and generate natural language narrative if model is tree-based
+    if is_tree_model:
+        try:
+            out = shap_for_pipeline(pipe, X)
+            shap_values = out["head_shap"]
+            top = top_features_from_shap(out["head_shap"], k=5)
+            top_features = [{"feature": k, "shap": v} for k, v in top]
+            narrative = build_narrative(head, top, probabilities_pct)
+        except Exception as e:
+            # Fall back to narrative message if SHAP computation fails
+            narrative = f"SHAP explanation unavailable: {str(e)}"
+    else:
+        narrative = f"SHAP explanations are only available for Random Forest and XGBoost models. {model_name} predictions are provided without feature attribution."
+    
+    # Return structured PredictResponse dataclass object
     return PredictResponse(
         prediction=head,
-        probabilities=out["probabilities"],
-        shap=out["head_shap"],
-        top_features=[{"feature": k, "shap": v} for k, v in top],
-        narrative=narr,
+        probabilities=probabilities_pct,
+        shap=shap_values,
+        top_features=top_features,
+        narrative=narrative,
         request_id=str(uuid.uuid4()),
     )
 
 
 def predict_batch(df: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list:
-    """Run batch predictions without SHAP for faster processing."""
+    """Run batch predictions without SHAP for faster processing.
+    
+    Validates input data before transformation to provide clear error messages.
+    """
+    from code.utils.config import FEATURE_NAMES
+    
+    # Check that input dataframe contains all required feature columns
+    missing_cols = set(FEATURE_NAMES) - set(df.columns)
+    if missing_cols:
+        raise ValueError(f"Missing required columns: {missing_cols}")
+    
+    # Load model pipeline
     pipe = joblib.load(MODELS_DIR / f"{model_name}.joblib")
     pre = pipe.named_steps["pre"]
     clf = pipe.named_steps["clf"]
@@ -83,17 +140,22 @@ def predict_batch(df: pd.DataFrame, model_name: str = DEFAULT_MODEL) -> list:
         if col in df.columns:
             df[col] = df[col].astype(str)
     
-    # Transform and predict in batch
-    Xt = pre.transform(df)
+    # Transform batch input dataframe
+    try:
+        Xt = pre.transform(df)
+    except Exception as e:
+        raise ValueError(f"Data transformation failed: {str(e)}. Please check that all categorical values are valid and numeric fields are within expected ranges.")
+    
+    # Compute predictions and class probability distributions across all rows
     probs = clf.predict_proba(Xt)
     preds = clf.predict(Xt)
     
-    # Convert to class names
+    # Map predictions to class labels
     from code.utils.risk_levels import RISK_LEVELS
     results = []
     for i in range(len(df)):
         pred_class = RISK_LEVELS[preds[i]]
-        prob_dict = {RISK_LEVELS[k]: float(probs[i][k]) for k in range(len(RISK_LEVELS))}
+        prob_dict = {RISK_LEVELS[k]: round(float(probs[i][k]) * 100, 2) for k in range(len(RISK_LEVELS))}
         results.append({
             "prediction": pred_class,
             "probabilities": prob_dict

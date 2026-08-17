@@ -15,13 +15,21 @@ DSS SYSTEM GROUP/
 │   └── processed/                    # Cleaned and split datasets
 │
 ├── 📁 models/                        # Trained model files
-│   ├── logistic_regression.joblib   # Logistic Regression model
-│   ├── random_forest.joblib          # Random Forest model
-│   └── model_card.json               # Model metadata
+│   ├── logistic_regression.joblib       # Logistic Regression model
+│   ├── random_forest.joblib              # Random Forest model
+│   ├── ordinal_logistic_regression.joblib # Ordinal Logistic Regression model
+│   ├── xgboost.joblib                   # XGBoost model
+│   ├── svm_rbf.joblib                   # SVM (RBF kernel) model
+│   ├── knn.joblib                       # K-Nearest Neighbors model
+│   └── model_card.json                  # Model metadata
 │
 ├── 📁 reports/                       # Evaluation reports
 │   ├── logistic_regression_test_report.json
-│   └── random_forest_test_report.json
+│   ├── random_forest_test_report.json
+│   ├── ordinal_logistic_regression_test_report.json
+│   ├── xgboost_test_report.json
+│   ├── svm_rbf_test_report.json
+│   └── knn_test_report.json
 │
 ├── 📁 dashboard/                     # Streamlit web interface
 │   ├── app.py                        # Main dashboard entry point
@@ -45,9 +53,13 @@ DSS SYSTEM GROUP/
 │   ├── models/                       # Model training modules
 │   │   ├── train_logreg.py          # Logistic Regression training
 │   │   ├── train_rf.py              # Random Forest training
+│   │   ├── train_ordinal_logreg.py  # Ordinal Logistic Regression training
+│   │   ├── train_xgboost.py         # XGBoost training
+│   │   ├── train_svm.py             # SVM (RBF kernel) training
+│   │   ├── train_knn.py             # K-Nearest Neighbors training
 │   │   ├── calibrate.py             # Model calibration
 │   │   ├── evaluate.py              # Model evaluation
-│   │   ├── ordinal_metrics.py       # Ordinal evaluation metrics
+│   │   ├── ordinal_metrics.py       # Ordinal evaluation metrics (QWK, Within-One, F2)
 │   │   └── model_registry.py        # Model version management
 │   │
 │   ├── explainability/               # Model explanation modules
@@ -90,8 +102,9 @@ DSS SYSTEM GROUP/
    This will:
    - Load and clean the raw dataset
    - Split into train/val/test sets
-   - Train Logistic Regression and Random Forest models
-   - Evaluate models and save reports
+   - Train 6 models: Logistic Regression, Random Forest, Ordinal Logistic Regression, XGBoost, SVM (RBF), KNN
+   - Evaluate models using QWK, Within-One Accuracy, Exact-Match Accuracy, and Macro F2
+   - Save evaluation reports and model card
 
 3. **Launch the dashboard:**
    ```bash
@@ -100,14 +113,14 @@ DSS SYSTEM GROUP/
 
 4. **Start the API server:**
    ```bash
-   python -m src.api.app
+   python -m code.api.app
    ```
 
 ## 📊 Key Files Explained
 
 - **pipeline.py**: The main entry point for training models. Run this first to generate models and processed data.
-- **src/utils/config.py**: Single source of truth for feature specifications and paths.
-- **src/utils/risk_levels.py**: Defines the 4 risk levels (Low, Medium, High, Critical) with colors and actions.
+- **code/utils/config.py**: Single source of truth for feature specifications and paths.
+- **code/utils/risk_levels.py**: Defines the 4 risk levels (Low, Medium, High, Critical) with colors and actions.
 - **dashboard/app.py**: Streamlit dashboard with multiple pages for prediction, analytics, and model performance.
 
 ## 🔧 Module Responsibilities

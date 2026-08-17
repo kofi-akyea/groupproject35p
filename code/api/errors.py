@@ -4,11 +4,13 @@ from flask import jsonify
 
 def error_response(message: str, code: int):
     """Create a standardised error response."""
+    # Build standardized JSON error response tuple with HTTP status code
     return jsonify({"error": message, "code": code}), code
 
 
 def validate_payload(payload: dict) -> str | None:
     """Validate a prediction request payload. Returns None if valid, error string otherwise."""
+    # List mandatory schema fields expected in prediction API request
     required_fields = [
         "Project_Type", "Complexity_Score", "Methodology_Used", "Project_Phase",
         "Team_Experience_Level", "Project_Manager_Experience", "Resource_Availability",
@@ -18,11 +20,13 @@ def validate_payload(payload: dict) -> str | None:
         "Historical_Risk_Incidents", "Vendor_Reliability_Score",
         "Tech_Environment_Stability",
     ]
+    
+    # Verify presence of all required feature fields
     for field in required_fields:
         if field not in payload:
             return f"Missing required field: {field}"
 
-    # Validate Complexity_Score range
+    # Validate Complexity_Score numeric boundaries [0.0, 10.0]
     cs = payload.get("Complexity_Score", 0)
     try:
         cs = float(cs)

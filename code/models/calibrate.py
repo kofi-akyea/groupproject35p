@@ -16,9 +16,14 @@ def calibrate(model: Pipeline, X_train, y_train, name: str):
     important for decision support systems where probability estimates
     inform risk management actions.
     """
+    # 5-fold stratified cross-validation split
     cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
+    
+    # Fit Platt scaling (sigmoid) probability calibrator
     cal = CalibratedClassifierCV(base_estimator=model, method="sigmoid", cv=cv)
     cal.fit(X_train, y_train)
+    
+    # Save calibrated model artifact to disk
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
     joblib.dump(cal, MODELS_DIR / f"{name}_calibrated.joblib")
     print(f"Calibrated model saved to {MODELS_DIR / f'{name}_calibrated.joblib'}")

@@ -24,18 +24,48 @@
   "target": "Risk_Level (Low=0, Medium=1, High=2, Critical=3)",
   "models": {
     "logistic_regression": {
-      "accuracy": 0.5016666666666667,
-      "qwk": 0.6657120097109476,
-      "within_one": 0.905,
-      "macro_f1": 0.5075651499653279
+      "accuracy": 0.495,
+      "qwk": 0.660439386147465,
+      "within_one": 0.9066666666666666,
+      "macro_f1": 0.503121414460248,
+      "macro_f2": 0.5240920591663331
     },
     "random_forest": {
+      "accuracy": 0.485,
+      "qwk": 0.615041824605109,
+      "within_one": 0.9116666666666666,
+      "macro_f1": 0.4919676470609646,
+      "macro_f2": 0.49286869966309454
+    },
+    "ordinal_logistic_regression": {
       "accuracy": 0.5066666666666667,
-      "qwk": 0.6219009691305449,
-      "within_one": 0.9266666666666666,
-      "macro_f1": 0.5078299087884126
+      "qwk": 0.6828936318090991,
+      "within_one": 0.9616666666666667,
+      "macro_f1": 0.5139973677171246,
+      "macro_f2": 0.5081709617458843
+    },
+    "xgboost": {
+      "accuracy": 0.47,
+      "qwk": 0.6322394959633304,
+      "within_one": 0.9366666666666666,
+      "macro_f1": 0.476336559813333,
+      "macro_f2": 0.4740119922352547
+    },
+    "svm_rbf": {
+      "accuracy": 0.49333333333333335,
+      "qwk": 0.6317377337518779,
+      "within_one": 0.9483333333333334,
+      "macro_f1": 0.48145122821119524,
+      "macro_f2": 0.4778860386911589
+    },
+    "knn": {
+      "accuracy": 0.4116666666666667,
+      "qwk": 0.49482221407624627,
+      "within_one": 0.8833333333333333,
+      "macro_f1": 0.41077897336092883,
+      "macro_f2": 0.40714739403183947
     }
   },
-  "selected_model": "random_forest (higher accuracy and QWK)",
+  "selected_model": "ordinal_logistic_regression (highest QWK and Within-One Accuracy)",
   "version": "1.0.0"
 }

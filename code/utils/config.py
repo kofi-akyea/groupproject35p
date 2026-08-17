@@ -3,6 +3,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import List, Optional
 
+# Define project root directory and key subdirectory paths
 ROOT = Path(__file__).resolve().parents[2]
 MODELS_DIR = ROOT / "models"
 DATA_DIR = ROOT / "data"
@@ -11,6 +12,7 @@ RAW_DIR = DATA_DIR / "raw"
 
 @dataclass(frozen=True)
 class FeatureSpec:
+    """Dataclass specifying metadata, types, boundaries, and UI grouping for each input feature."""
     name: str
     display: str
     kind: str                    # "numeric" | "ordinal" | "nominal"
@@ -21,10 +23,9 @@ class FeatureSpec:
     default: Optional[object] = None
     group: str = "Project"
 
-# Order matters: fixes input form order, L1 analysis, and SHAP column order.
-# These 18 features were selected via L1 regularisation as the most informative.
+# Canonical feature specifications (18 regularized features)
 FEATURE_SPECS: List[FeatureSpec] = [
-    # Project
+    # Project characteristics group
     FeatureSpec("Project_Type", "Project Type", "nominal",
                 order=["Construction", "IT", "Healthcare", "Manufacturing", "R&D", "Marketing"],
                 default="IT", group="Project"),
@@ -37,7 +38,7 @@ FEATURE_SPECS: List[FeatureSpec] = [
                 order=["Initiation", "Planning", "Execution", "Monitoring", "Closure"],
                 default="Execution", group="Project"),
 
-    # Team
+    # Team & PM experience group
     FeatureSpec("Team_Experience_Level", "Team Experience", "ordinal",
                 order=["Junior", "Mixed", "Senior", "Expert"],
                 default="Mixed", group="Team"),
@@ -49,7 +50,7 @@ FEATURE_SPECS: List[FeatureSpec] = [
     FeatureSpec("Team_Turnover_Rate", "Team Turnover Rate", "numeric",
                 minv=0.0, maxv=1.0, step=0.01, default=0.15, group="Team"),
 
-    # Governance
+    # Governance & process maturity group
     FeatureSpec("Requirement_Stability", "Requirement Stability", "ordinal",
                 order=["Volatile", "Moderate", "Stable"],
                 default="Moderate", group="Governance"),
@@ -62,7 +63,7 @@ FEATURE_SPECS: List[FeatureSpec] = [
     FeatureSpec("Communication_Frequency", "Communication Frequency", "numeric",
                 minv=0.0, maxv=10.0, step=0.1, default=3.0, group="Governance"),
 
-    # Schedule/Budget/External
+    # Schedule, budget, and environmental factors group
     FeatureSpec("Schedule_Pressure", "Schedule Pressure", "numeric",
                 minv=0.0, maxv=1.0, step=0.01, default=0.4, group="Schedule/Budget/External"),
     FeatureSpec("Budget_Utilization_Rate", "Budget Utilisation Rate", "numeric",
@@ -78,5 +79,8 @@ FEATURE_SPECS: List[FeatureSpec] = [
                 minv=0.0, maxv=1.0, step=0.01, default=0.6, group="Governance"),
 ]
 
+# List of feature column names
 FEATURE_NAMES = [f.name for f in FEATURE_SPECS]
+
+# Feature schema map
 FEATURE_SCHEMA = {f.name: f for f in FEATURE_SPECS}
